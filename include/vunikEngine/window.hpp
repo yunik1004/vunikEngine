@@ -60,6 +60,8 @@ namespace vunikEngine {
 		VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
 		VkExtent2D swapChainExtent = {0, 0};
 
+		std::vector<VkImageView> swapChainImageViews;
+
 		bool initVulkan (void);
 		void cleanVulkan (void);
 
@@ -83,6 +85,8 @@ namespace vunikEngine {
 		VkExtent2D chooseSwapExtent (const VkSurfaceCapabilitiesKHR& capabilities);
 
 		VKSwapChainSupportDetails querySwapChainSupport (VkPhysicalDevice device);
+
+		bool createImageViews (void);
 
 		std::vector<const char*> Window::getRequiredExtensions (void);
 		bool checkValidationLayerSupport (void);
