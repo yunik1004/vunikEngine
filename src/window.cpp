@@ -1,5 +1,6 @@
 #include <vunikEngine/window.hpp>
 #include <iostream>
+#include <set>
 
 namespace vunikEngine {
 	const std::vector<const char*> validationLayers = {
@@ -87,6 +88,10 @@ namespace vunikEngine {
 			return false;
 		}
 
+		if (!createVkSurface()) {
+			return false;
+		}
+
 		if (!pickVkPhysicalDevice()) {
 			return false;
 		}
@@ -103,11 +108,15 @@ namespace vunikEngine {
 			vkDestroyDevice(device, nullptr);
 		}
 
-		if (vkinst != nullptr && callback != nullptr) {
-			destroyDebugReportCallbackEXT(vkinst, callback, nullptr);
-		}
-
 		if (vkinst) {
+			if (callback) {
+				destroyDebugReportCallbackEXT(vkinst, callback, nullptr);
+			}
+
+			if (surface) {
+				vkDestroySurfaceKHR(vkinst, surface, nullptr);
+			}
+
 			vkDestroyInstance(vkinst, nullptr);
 		}
 	}
@@ -167,6 +176,14 @@ namespace vunikEngine {
 		return true;
 	}
 
+	bool Window::createVkSurface (void) {
+		if (glfwCreateWindowSurface(vkinst, window, nullptr, &surface) != VK_SUCCESS) {
+			fprintf_s(stderr, "Vulkan error: Failed to create window surface\n");
+			return false;
+		}
+		return true;
+	}
+
 	bool Window::pickVkPhysicalDevice (void) {
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(vkinst, &deviceCount, nullptr);
@@ -214,6 +231,13 @@ namespace vunikEngine {
 				indices.graphicsFamily = i;
 			}
 
+			VkBool32 presentSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+
+			if (queueFamily.queueCount > 0 && presentSupport) {
+				indices.presentFamily = i;
+			}
+
 			if (indices.isComplete()) {
 				break;
 			}
@@ -227,20 +251,25 @@ namespace vunikEngine {
 	bool Window::createVkLogicalDevice(void) {
 		VKQueueFamilyIndices indices = findVkQueueFamilies(physicalDevice);
 
-		VkDeviceQueueCreateInfo queueCreateInfo = {};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
-		queueCreateInfo.queueCount = 1;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<int> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
 
 		float queuePriority = 1.0f;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		for (int queueFamily : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo = {};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = &queueCreateInfo;
-		createInfo.queueCreateInfoCount = 1;
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = 0;
 		if (enableValidationLayers) {
@@ -254,6 +283,9 @@ namespace vunikEngine {
 			fprintf_s(stderr, "Vulkan error: Failed to create logical device\n");
 			return false;
 		}
+
+		vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
+		vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
 
 		return true;
 	}

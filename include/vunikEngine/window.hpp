@@ -11,9 +11,10 @@
 namespace vunikEngine {
 	struct VKQueueFamilyIndices {
 		int graphicsFamily = -1;
+		int presentFamily = -1;
 
 		bool isComplete() {
-			return graphicsFamily >= 0;
+			return graphicsFamily >= 0 && presentFamily >= 0;
 		}
 	};
 
@@ -34,17 +35,23 @@ namespace vunikEngine {
 
 		GLFWwindow* window = nullptr;
 
-		VkInstance vkinst = nullptr;
-		VkDebugReportCallbackEXT callback = nullptr;
-
+		VkInstance vkinst = VK_NULL_HANDLE;
+		VkDebugReportCallbackEXT callback = VK_NULL_HANDLE;
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
+		
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-		VkDevice device = nullptr;
+		VkDevice device = VK_NULL_HANDLE;
+
+		VkQueue graphicsQueue = VK_NULL_HANDLE;
+		VkQueue presentQueue = VK_NULL_HANDLE;
 
 		bool initVulkan (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
 		void cleanVulkan (void);
 
 		bool createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
 		bool setupVkDebugCallback (void);
+
+		bool createVkSurface (void);
 
 		bool pickVkPhysicalDevice (void);
 		bool isVkDeviceSuitable (VkPhysicalDevice device);
