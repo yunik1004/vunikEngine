@@ -34,7 +34,7 @@ namespace vunikEngine {
 		}
 	}
 
-	Window::Window(void) {}
+	Window::Window (void) {}
 
     Window::~Window (void) {
 		cleanVulkan();

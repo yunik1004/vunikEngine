@@ -13,13 +13,13 @@ namespace vunikEngine {
 		int graphicsFamily = -1;
 		int presentFamily = -1;
 
-		bool isComplete() {
+		bool isComplete (void) {
 			return graphicsFamily >= 0 && presentFamily >= 0;
 		}
 	};
 
 	struct VKSwapChainSupportDetails {
-		VkSurfaceCapabilitiesKHR capabilities;
+		VkSurfaceCapabilitiesKHR capabilities = { 0, 0, {0, 0}, {0, 0}, {0, 0}, 0, 0, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR, 0, 0};
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
 	};
