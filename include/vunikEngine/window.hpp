@@ -18,6 +18,12 @@ namespace vunikEngine {
 		}
 	};
 
+	struct VKSwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
+
     class Window {
     friend class ProjectManager;
 
@@ -25,7 +31,7 @@ namespace vunikEngine {
         Window (void);
         ~Window (void);
 
-        bool createWindow (int width, int height, std::string title);
+        bool createWindow (uint32_t width, uint32_t height, std::string title);
 
 		void render (void);
 
@@ -35,6 +41,8 @@ namespace vunikEngine {
 
 		GLFWwindow* window = nullptr;
 
+		uint32_t win_width = 0;
+		uint32_t win_height = 0;
 		std::string win_title = "";
 
 		VkInstance vkinst = VK_NULL_HANDLE;
@@ -47,6 +55,11 @@ namespace vunikEngine {
 		VkQueue graphicsQueue = VK_NULL_HANDLE;
 		VkQueue presentQueue = VK_NULL_HANDLE;
 
+		VkSwapchainKHR swapChain;
+		std::vector<VkImage> swapChainImages;
+		VkFormat swapChainImageFormat;
+		VkExtent2D swapChainExtent;
+
 		bool initVulkan (void);
 		void cleanVulkan (void);
 
@@ -57,10 +70,19 @@ namespace vunikEngine {
 
 		bool pickVkPhysicalDevice (void);
 		bool isVkDeviceSuitable (VkPhysicalDevice device);
+		bool checkDeviceExtensionSupport (VkPhysicalDevice device);
 
 		VKQueueFamilyIndices findVkQueueFamilies (VkPhysicalDevice device);
 
 		bool createVkLogicalDevice (void);
+
+		bool createVkSwapChain (void);
+
+		VkSurfaceFormatKHR chooseSwapSurfaceFormat (const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		VkPresentModeKHR chooseSwapPresentMode (const std::vector<VkPresentModeKHR> availablePresentModes);
+		VkExtent2D chooseSwapExtent (const VkSurfaceCapabilitiesKHR& capabilities);
+
+		VKSwapChainSupportDetails querySwapChainSupport (VkPhysicalDevice device);
 
 		std::vector<const char*> Window::getRequiredExtensions (void);
 		bool checkValidationLayerSupport (void);
