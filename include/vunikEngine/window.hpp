@@ -38,8 +38,10 @@ namespace vunikEngine {
 		VkDebugReportCallbackEXT callback = nullptr;
 
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+		VkDevice device = nullptr;
 
 		bool initVulkan (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
+		void cleanVulkan (void);
 
 		bool createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
 		bool setupVkDebugCallback (void);
@@ -48,6 +50,8 @@ namespace vunikEngine {
 		bool isVkDeviceSuitable (VkPhysicalDevice device);
 
 		VKQueueFamilyIndices findVkQueueFamilies (VkPhysicalDevice device);
+
+		bool createVkLogicalDevice (void);
 
 		std::vector<const char*> Window::getRequiredExtensions (void);
 		bool checkValidationLayerSupport (void);

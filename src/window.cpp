@@ -31,11 +31,7 @@ namespace vunikEngine {
 	Window::Window(void) {}
 
     Window::~Window (void) {
-		destroyDebugReportCallbackEXT(vkinst, callback, nullptr);
-
-		if (vkinst) {
-			vkDestroyInstance(vkinst, nullptr);
-		}
+		cleanVulkan();
 
         if (window) {
             glfwDestroyWindow(window);
@@ -95,7 +91,25 @@ namespace vunikEngine {
 			return false;
 		}
 
+		if (!createVkLogicalDevice()) {
+			return false;
+		}
+
 		return true;
+	}
+
+	void Window::cleanVulkan(void) {
+		if (device) {
+			vkDestroyDevice(device, nullptr);
+		}
+
+		if (vkinst != nullptr && callback != nullptr) {
+			destroyDebugReportCallbackEXT(vkinst, callback, nullptr);
+		}
+
+		if (vkinst) {
+			vkDestroyInstance(vkinst, nullptr);
+		}
 	}
 
 	bool Window::createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor) {
@@ -208,6 +222,40 @@ namespace vunikEngine {
 		}
 
 		return indices;
+	}
+
+	bool Window::createVkLogicalDevice(void) {
+		VKQueueFamilyIndices indices = findVkQueueFamilies(physicalDevice);
+
+		VkDeviceQueueCreateInfo queueCreateInfo = {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+		queueCreateInfo.queueCount = 1;
+
+		float queuePriority = 1.0f;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+
+		VkPhysicalDeviceFeatures deviceFeatures = {};
+
+		VkDeviceCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pQueueCreateInfos = &queueCreateInfo;
+		createInfo.queueCreateInfoCount = 1;
+		createInfo.pEnabledFeatures = &deviceFeatures;
+		createInfo.enabledExtensionCount = 0;
+		if (enableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			createInfo.ppEnabledLayerNames = validationLayers.data();
+		} else {
+			createInfo.enabledLayerCount = 0;
+		}
+
+		if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+			fprintf_s(stderr, "Vulkan error: Failed to create logical device\n");
+			return false;
+		}
+
+		return true;
 	}
 
 	std::vector<const char*> Window::getRequiredExtensions (void) {
