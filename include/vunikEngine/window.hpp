@@ -55,10 +55,10 @@ namespace vunikEngine {
 		VkQueue graphicsQueue = VK_NULL_HANDLE;
 		VkQueue presentQueue = VK_NULL_HANDLE;
 
-		VkSwapchainKHR swapChain;
+		VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 		std::vector<VkImage> swapChainImages;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
+		VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
+		VkExtent2D swapChainExtent = {0, 0};
 
 		bool initVulkan (void);
 		void cleanVulkan (void);
