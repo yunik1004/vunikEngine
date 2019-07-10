@@ -6,7 +6,7 @@
 #define GLFW_INCLUDE_VULKAN
 #endif
 #include <GLFW/glfw3.h>
-#include <vunikEngine/init.hpp>
+#include <vunikEngine/projectManager.hpp>
 
 namespace vunikEngine {
 	struct VKQueueFamilyIndices {
@@ -19,13 +19,13 @@ namespace vunikEngine {
 	};
 
     class Window {
-    friend class Init;
+    friend class ProjectManager;
 
     public:
         Window (void);
         ~Window (void);
 
-        bool createWindow (int width, int height, std::string title, uint32_t app_major = 1, uint32_t app_minor = 0, uint32_t app_patch = 0, uint32_t vk_major = 1, uint32_t vk_minor = 1);
+        bool createWindow (int width, int height, std::string title);
 
 		void render (void);
 
@@ -34,6 +34,8 @@ namespace vunikEngine {
         static void deinit (void);
 
 		GLFWwindow* window = nullptr;
+
+		std::string win_title = "";
 
 		VkInstance vkinst = VK_NULL_HANDLE;
 		VkDebugReportCallbackEXT callback = VK_NULL_HANDLE;
@@ -45,10 +47,10 @@ namespace vunikEngine {
 		VkQueue graphicsQueue = VK_NULL_HANDLE;
 		VkQueue presentQueue = VK_NULL_HANDLE;
 
-		bool initVulkan (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
+		bool initVulkan (void);
 		void cleanVulkan (void);
 
-		bool createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
+		bool createVkInstance (void);
 		bool setupVkDebugCallback (void);
 
 		bool createVkSurface (void);

@@ -39,14 +39,16 @@ namespace vunikEngine {
         }
     }
 
-    bool Window::createWindow (int width, int height, std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor) {
+    bool Window::createWindow (int width, int height, std::string title) {
         window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
         if (!window) {
             fprintf_s(stderr, "GLFW Error: Failed to create window\n");
             return false;
         }
 
-		if (!initVulkan(title, app_major, app_minor, app_patch, vk_major, vk_minor)) {
+		win_title = title;
+
+		if (!initVulkan()) {
 			return false;
 		}
 
@@ -79,8 +81,8 @@ namespace vunikEngine {
 		glfwTerminate();
 	}
 
-	bool Window::initVulkan (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor) {
-		if (!createVkInstance(title, app_major, app_minor, app_patch, vk_major, vk_minor)) {
+	bool Window::initVulkan (void) {
+		if (!createVkInstance()) {
 			return false;
 		}
 
@@ -121,7 +123,7 @@ namespace vunikEngine {
 		}
 	}
 
-	bool Window::createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor) {
+	bool Window::createVkInstance (void) {
 		if (enableValidationLayers && !checkValidationLayerSupport()) {
 			fprintf_s(stderr, "Vulkan error: Requested validation layers are not available\n");
 			return false;
@@ -129,10 +131,10 @@ namespace vunikEngine {
 
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = title.c_str();
-		appInfo.applicationVersion = VK_MAKE_VERSION(app_major, app_minor, app_patch);
+		appInfo.pApplicationName = win_title.c_str();
+		appInfo.applicationVersion = VK_MAKE_VERSION(ProjectManager::app_major, ProjectManager::app_minor, ProjectManager::app_patch);
 		appInfo.pEngineName = "vunikEngine";
-		appInfo.apiVersion = VK_MAKE_VERSION(vk_major, vk_minor, 0);
+		appInfo.apiVersion = VK_MAKE_VERSION(ProjectManager::vk_major, ProjectManager::vk_minor, 0);
 
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
