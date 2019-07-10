@@ -9,6 +9,14 @@
 #include <vunikEngine/init.hpp>
 
 namespace vunikEngine {
+	struct VKQueueFamilyIndices {
+		int graphicsFamily = -1;
+
+		bool isComplete() {
+			return graphicsFamily >= 0;
+		}
+	};
+
     class Window {
     friend class Init;
 
@@ -29,9 +37,19 @@ namespace vunikEngine {
 		VkInstance vkinst = nullptr;
 		VkDebugReportCallbackEXT callback = nullptr;
 
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+		bool initVulkan (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
+
 		bool createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor);
-		bool setupVkDebugCallback(void);
-		std::vector<const char*> Window::getRequiredExtensions(void);
+		bool setupVkDebugCallback (void);
+
+		bool pickVkPhysicalDevice (void);
+		bool isVkDeviceSuitable (VkPhysicalDevice device);
+
+		VKQueueFamilyIndices findVkQueueFamilies (VkPhysicalDevice device);
+
+		std::vector<const char*> Window::getRequiredExtensions (void);
 		bool checkValidationLayerSupport (void);
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code, const char* layerPrefix, const char* msg, void* userData);

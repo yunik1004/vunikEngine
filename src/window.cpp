@@ -49,11 +49,7 @@ namespace vunikEngine {
             return false;
         }
 
-		if (!createVkInstance(title, app_major, app_minor, app_patch, vk_major, vk_minor)) {
-			return false;
-		}
-
-		if (!setupVkDebugCallback()) {
+		if (!initVulkan(title, app_major, app_minor, app_patch, vk_major, vk_minor)) {
 			return false;
 		}
 
@@ -84,6 +80,22 @@ namespace vunikEngine {
 
 	void Window::deinit(void) {
 		glfwTerminate();
+	}
+
+	bool Window::initVulkan (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor) {
+		if (!createVkInstance(title, app_major, app_minor, app_patch, vk_major, vk_minor)) {
+			return false;
+		}
+
+		if (!setupVkDebugCallback()) {
+			return false;
+		}
+
+		if (!pickVkPhysicalDevice()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	bool Window::createVkInstance (std::string title, uint32_t app_major, uint32_t app_minor, uint32_t app_patch, uint32_t vk_major, uint32_t vk_minor) {
@@ -139,6 +151,63 @@ namespace vunikEngine {
 			return false;
 		}
 		return true;
+	}
+
+	bool Window::pickVkPhysicalDevice (void) {
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(vkinst, &deviceCount, nullptr);
+		if (deviceCount == 0) {
+			fprintf_s(stderr, "Vulkan error: Failed to find GPUs with Vulkan support\n");
+			return false;
+		}
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(vkinst, &deviceCount, devices.data());
+
+		for (const auto& device : devices) {
+			if (isVkDeviceSuitable(device)) {
+				physicalDevice = device;
+				break;
+			}
+		}
+
+		if (physicalDevice == VK_NULL_HANDLE) {
+			fprintf_s(stderr, "Vulkan error: Failed to find a suitable GPU\n");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Window::isVkDeviceSuitable (VkPhysicalDevice device) {
+		VKQueueFamilyIndices indices = findVkQueueFamilies(device);
+
+		return indices.isComplete();
+	}
+
+	VKQueueFamilyIndices Window::findVkQueueFamilies (VkPhysicalDevice device) {
+		VKQueueFamilyIndices indices;
+
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+		int i = 0;
+		for (const auto& queueFamily : queueFamilies) {
+			if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				indices.graphicsFamily = i;
+			}
+
+			if (indices.isComplete()) {
+				break;
+			}
+
+			i++;
+		}
+
+		return indices;
 	}
 
 	std::vector<const char*> Window::getRequiredExtensions (void) {
