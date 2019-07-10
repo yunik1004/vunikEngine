@@ -88,6 +88,8 @@ namespace vunikEngine {
 
 		bool createImageViews (void);
 
+		bool createGraphicsPipeline (void);
+
 		std::vector<const char*> Window::getRequiredExtensions (void);
 		bool checkValidationLayerSupport (void);
 

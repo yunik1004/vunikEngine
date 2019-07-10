@@ -59,10 +59,6 @@ namespace vunikEngine {
 			return false;
 		}
 
-		if (!createImageViews()) {
-			return false;
-		}
-
 		return true;
     }
 
@@ -114,6 +110,14 @@ namespace vunikEngine {
 		}
 
 		if (!createVkSwapChain()) {
+			return false;
+		}
+
+		if (!createImageViews()) {
+			return false;
+		}
+
+		if (!createGraphicsPipeline()) {
 			return false;
 		}
 
@@ -489,6 +493,10 @@ namespace vunikEngine {
 			}
 		}
 
+		return true;
+	}
+
+	bool Window::createGraphicsPipeline (void) {
 		return true;
 	}
 
