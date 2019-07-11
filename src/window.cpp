@@ -68,6 +68,34 @@ namespace vunikEngine {
 		}
 	}
 
+	bool Window::createGraphicsPipeline(std::vector<Shader> shaders) {
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages(shaders.size());
+
+		bool res = true;
+
+		for (const auto& shader : shaders) {
+			VkShaderModule shaderModule = createShaderModule(shader.code);
+			if (shaderModule == VK_NULL_HANDLE) {
+				res = false;
+				break;
+			}
+
+			VkPipelineShaderStageCreateInfo stageInfo = {};
+			stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			stageInfo.stage = static_cast<VkShaderStageFlagBits>(shader.kind);
+			stageInfo.module = shaderModule;
+			stageInfo.pName = "main";
+
+			shaderStages.push_back(stageInfo);
+		}
+
+		for (std::vector<VkPipelineShaderStageCreateInfo>::const_reverse_iterator i = shaderStages.rbegin(); i != shaderStages.rend(); ++i) {
+			vkDestroyShaderModule(device, (*i).module, nullptr);
+		}
+
+		return res;
+	}
+
 	bool Window::init(void) {
 		/* Initialize glfw */
 		if (!glfwInit()) {
@@ -114,10 +142,6 @@ namespace vunikEngine {
 		}
 
 		if (!createImageViews()) {
-			return false;
-		}
-
-		if (!createGraphicsPipeline()) {
 			return false;
 		}
 
@@ -496,8 +520,24 @@ namespace vunikEngine {
 		return true;
 	}
 
-	bool Window::createGraphicsPipeline (void) {
-		return true;
+	VkShaderModule Window::createShaderModule (const std::vector<char>& code) {
+		if (code.size() <= 0) {
+			fprintf_s(stderr, "Vulkan error: Size of the shader code is zero\n");
+			return VK_NULL_HANDLE;
+		}
+
+		VkShaderModuleCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = code.size();
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+		VkShaderModule shaderModule;
+		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+			fprintf_s(stderr, "Vulkan error: Failed to create shader module\n");
+			return VK_NULL_HANDLE;
+		}
+
+		return shaderModule;
 	}
 
 	std::vector<const char*> Window::getRequiredExtensions (void) {

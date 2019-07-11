@@ -7,6 +7,7 @@
 #endif
 #include <GLFW/glfw3.h>
 #include <vunikEngine/projectManager.hpp>
+#include <vunikEngine/shader.hpp>
 
 namespace vunikEngine {
 	struct VKQueueFamilyIndices {
@@ -26,6 +27,7 @@ namespace vunikEngine {
 
     class Window {
     friend class ProjectManager;
+	friend class Shader;
 
     public:
         Window (void);
@@ -34,6 +36,8 @@ namespace vunikEngine {
         bool createWindow (uint32_t width, uint32_t height, std::string title);
 
 		void render (void);
+
+		bool createGraphicsPipeline(std::vector<Shader> shaders);
 
     private:
         static bool init (void);
@@ -88,7 +92,7 @@ namespace vunikEngine {
 
 		bool createImageViews (void);
 
-		bool createGraphicsPipeline (void);
+		VkShaderModule createShaderModule (const std::vector<char>& code);
 
 		std::vector<const char*> Window::getRequiredExtensions (void);
 		bool checkValidationLayerSupport (void);
